@@ -1,0 +1,6 @@
+{
+  "name": "TileGrid Studio",
+  "description": "Professional tile grid editor for game developers. Map collisions, water, and walkable areas directly onto your assets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
