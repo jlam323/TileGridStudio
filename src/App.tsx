@@ -9,7 +9,7 @@ import { Sidebar } from "./components/Sidebar";
 import { Workspace } from "./components/Workspace";
 import { Notification } from "./components/Notification";
 import { Mode, Offset, LabelInput } from "./types";
-import { TILE_SIZE, DEFAULT_MODES } from "./constants";
+import { DEFAULT_TILE_SIZE, DEFAULT_MODES } from "./constants";
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,6 +24,8 @@ export default function App() {
     }
   });
 
+  const [tileSize, setTileSize] = useState(DEFAULT_TILE_SIZE);
+  const [exportFilename, setExportFilename] = useState("tile_grid.json");
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [grid, setGrid] = useState<number[][]>([]);
   const [mode, setMode] = useState(0);
@@ -53,8 +55,8 @@ export default function App() {
     const img = new Image();
     img.onload = () => {
       setImage(img);
-      const cols = Math.floor(img.width / TILE_SIZE);
-      const rows = Math.floor(img.height / TILE_SIZE);
+      const cols = Math.floor(img.width / tileSize);
+      const rows = Math.floor(img.height / tileSize);
       const newGrid = Array.from({ length: rows }, () =>
         Array(cols).fill(0)
       );
@@ -91,20 +93,20 @@ export default function App() {
         
         if (cell !== 0 && modeInfo && modeInfo.id !== -1) {
           ctx.fillStyle = modeInfo.color;
-          ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
           ctx.strokeStyle = modeInfo.stroke || modeInfo.color;
           ctx.lineWidth = 1;
-          ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
         }
 
         if (showGrid) {
           ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
           ctx.lineWidth = 0.5;
-          ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
         }
       }
     }
-  }, [image, grid, showGrid, modes]);
+  }, [image, grid, showGrid, modes, tileSize]);
 
   useEffect(() => {
     draw();
@@ -113,8 +115,8 @@ export default function App() {
   const paintAt = (clientX: number, clientY: number) => {
     if (!canvasRef.current || grid.length === 0) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = Math.floor(((clientX - rect.left) / zoom) / TILE_SIZE);
-    const y = Math.floor(((clientY - rect.top) / zoom) / TILE_SIZE);
+    const x = Math.floor(((clientX - rect.left) / zoom) / tileSize);
+    const y = Math.floor(((clientY - rect.top) / zoom) / tileSize);
 
     if (y >= 0 && y < grid.length && x >= 0 && x < grid[0].length) {
       if (grid[y][x] !== mode) {
@@ -208,8 +210,8 @@ export default function App() {
     
     ctx.drawImage(image, 0, 0);
 
-    const cols = Math.floor(image.width / TILE_SIZE);
-    const rows = Math.floor(image.height / TILE_SIZE);
+    const cols = Math.floor(image.width / tileSize);
+    const rows = Math.floor(image.height / tileSize);
     const newGrid: number[][] = [];
     
     const fullData = ctx.getImageData(0, 0, image.width, image.height).data;
@@ -220,9 +222,10 @@ export default function App() {
         let r = 0, g = 0, b = 0;
         let samples = 0;
         
-        for (let i = 4; i < TILE_SIZE - 4; i += 2) {
-          for (let j = 4; j < TILE_SIZE - 4; j += 2) {
-            const pixelIndex = ((y * TILE_SIZE + i) * image.width + (x * TILE_SIZE + j)) * 4;
+        const samplePadding = Math.max(1, Math.floor(tileSize / 4));
+        for (let i = samplePadding; i < tileSize - samplePadding; i += Math.max(1, Math.floor(tileSize / 8))) {
+          for (let j = samplePadding; j < tileSize - samplePadding; j += Math.max(1, Math.floor(tileSize / 8))) {
+            const pixelIndex = ((y * tileSize + i) * image.width + (x * tileSize + j)) * 4;
             r += fullData[pixelIndex];
             g += fullData[pixelIndex + 1];
             b += fullData[pixelIndex + 2];
@@ -282,11 +285,26 @@ export default function App() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(grid));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "tile_grid.json");
+    const filename = exportFilename.endsWith('.json') ? exportFilename : `${exportFilename}.json`;
+    downloadAnchorNode.setAttribute("download", filename);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-    notify("Grid configuration exported as JSON");
+    notify(`Grid configuration exported as ${filename}`);
+  };
+
+  const updateTileSize = (newSize: number) => {
+    if (newSize < 1) return;
+    setTileSize(newSize);
+    if (image) {
+      const cols = Math.floor(image.width / newSize);
+      const rows = Math.floor(image.height / newSize);
+      const newGrid = Array.from({ length: rows }, () =>
+        Array(cols).fill(0)
+      );
+      setGrid(newGrid);
+      notify(`Grid recalibrated to ${newSize}px tiles`);
+    }
   };
 
   return (
@@ -295,7 +313,9 @@ export default function App() {
         onUpload={handleUpload} 
         onExport={exportGrid} 
         onDownload={downloadGrid} 
-        isImageLoaded={!!image} 
+        isImageLoaded={!!image}
+        filename={exportFilename}
+        setFilename={setExportFilename}
       />
 
       <main className="flex flex-1 overflow-hidden">
@@ -319,6 +339,8 @@ export default function App() {
           setZoom={setZoom}
           onResetZoom={() => { setZoom(1); setOffset({ x: 0, y: 0 }); }}
           gridSize={grid.length > 0 ? { cols: grid[0].length, rows: grid.length } : null}
+          tileSize={tileSize}
+          setTileSize={updateTileSize}
         />
 
         <Workspace 
@@ -332,6 +354,7 @@ export default function App() {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onUpload={handleUpload}
+          tileSize={tileSize}
         />
 
         <input

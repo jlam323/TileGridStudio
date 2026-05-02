@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Mode, LabelInput } from "../types";
-import { ICON_MAP, TILE_SIZE } from "../constants";
+import { ICON_MAP } from "../constants";
 
 interface SidebarProps {
   modes: Mode[];
@@ -27,6 +27,8 @@ interface SidebarProps {
   setZoom: (val: (prev: number) => number) => void;
   onResetZoom: () => void;
   gridSize: { cols: number; rows: number } | null;
+  tileSize: number;
+  setTileSize: (val: number) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -48,10 +50,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
   zoom,
   setZoom,
   onResetZoom,
-  gridSize
+  gridSize,
+  tileSize,
+  setTileSize
 }) => {
   return (
     <aside className="w-64 border-r border-[#E4E3E0]/10 bg-[#1A1A1A] p-6 flex flex-col gap-8 overflow-y-auto">
+      <section>
+        <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#E4E3E0]/40 mb-4 italic">Grid Configuration</h2>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono text-[#E4E3E0]/60">Tile Size (px)</span>
+            <input 
+              type="number" 
+              min="1"
+              max="128"
+              value={tileSize}
+              onChange={(e) => setTileSize(parseInt(e.target.value) || 1)}
+              className="bg-[#141414] border border-[#E4E3E0]/10 px-2 py-1 text-xs font-mono focus:outline-none focus:border-[#E4E3E0]/30 w-16 text-white text-right"
+            />
+          </div>
+          <div className="text-[10px] text-[#E4E3E0]/30 font-mono italic leading-tight">
+            * Adjusting size will reset current grid progress.
+          </div>
+        </div>
+      </section>
+
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#E4E3E0]/40 italic">Mode Selection</h2>
@@ -220,7 +244,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div className="flex items-center justify-between text-[11px] font-mono mt-1">
               <span>Tile Size</span>
-              <span className="text-blue-400">{TILE_SIZE}px</span>
+              <span className="text-blue-400">{tileSize}px</span>
             </div>
          </div>
       </section>

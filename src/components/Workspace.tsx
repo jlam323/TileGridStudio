@@ -1,7 +1,6 @@
 import React from "react";
 import { Upload } from "lucide-react";
 import { Offset } from "../types";
-import { TILE_SIZE } from "../constants";
 
 interface WorkspaceProps {
   image: HTMLImageElement | null;
@@ -14,6 +13,7 @@ interface WorkspaceProps {
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseUp: () => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  tileSize: number;
 }
 
 export const Workspace: React.FC<WorkspaceProps> = ({
@@ -26,7 +26,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   onMouseDown,
   onMouseMove,
   onMouseUp,
-  onUpload
+  onUpload,
+  tileSize
 }) => {
   return (
     <section className="relative flex-1 bg-[#141414] overflow-auto flex items-center justify-center p-12">
@@ -39,7 +40,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <h3 className="text-lg font-mono uppercase tracking-widest mb-2 font-bold">Awaiting Input</h3>
             <p className="text-xs text-[#E4E3E0]/40 font-mono leading-relaxed">
               Upload an image asset to begin grid mapping. 
-              Recommended tile size is {TILE_SIZE}px.
+              Recommended tile size is {tileSize}px.
             </p>
           </div>
           <label className="px-6 py-3 bg-[#E4E3E0] text-[#141414] text-xs font-bold font-mono uppercase tracking-[0.2em] cursor-pointer hover:bg-white transition-colors">

@@ -1,6 +1,6 @@
 # TileGrid Studio
 
-TileGrid Studio is a tool designed for mapping out grids used in 2D game development. It allows developers to import image assets and paint collision, terrain, or custom metadata labels onto a pixel-perfect grid.
+TileGrid Studio is a robust, professional-grade tool designed for mapping out grids used in 2D game development. It allows developers to import image assets and paint collision, terrain, or custom metadata labels onto a pixel-perfect grid.
 
 ![TileGrid Studio Screenshot](./public/tile-grid-screenshot.png)
 

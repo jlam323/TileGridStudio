@@ -6,9 +6,11 @@ interface HeaderProps {
   onExport: () => void;
   onDownload: () => void;
   isImageLoaded: boolean;
+  filename: string;
+  setFilename: (val: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onUpload, onExport, onDownload, isImageLoaded }) => {
+export const Header: React.FC<HeaderProps> = ({ onUpload, onExport, onDownload, isImageLoaded, filename, setFilename }) => {
   return (
     <header className="flex items-center justify-between px-6 py-4 border-bottom border-[#E4E3E0]/20 bg-[#1A1A1A]">
       <div className="flex items-center gap-3">
@@ -19,6 +21,15 @@ export const Header: React.FC<HeaderProps> = ({ onUpload, onExport, onDownload, 
       </div>
 
       <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 mr-2">
+          <span className="text-[10px] uppercase font-mono text-[#E4E3E0]/40">Filename:</span>
+          <input 
+            type="text" 
+            value={filename}
+            onChange={(e) => setFilename(e.target.value)}
+            className="bg-[#141414] border border-[#E4E3E0]/10 px-2 py-1 text-xs font-mono focus:outline-none focus:border-[#E4E3E0]/30 w-40 text-white"
+          />
+        </div>
         <label className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono uppercase border border-[#E4E3E0]/20 hover:bg-[#E4E3E0] hover:text-[#141414] transition-colors cursor-pointer tracking-wider">
           <Upload className="w-4 h-4" />
           Load Image

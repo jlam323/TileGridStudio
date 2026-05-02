@@ -1,7 +1,7 @@
 import { Grab, MousePointer2, Ban, Droplets, Tag } from "lucide-react";
 import { Mode } from "./types";
 
-export const TILE_SIZE = 16;
+export const DEFAULT_TILE_SIZE = 16;
 
 export const ICON_MAP = {
   Grab,
