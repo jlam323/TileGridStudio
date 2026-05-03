@@ -294,7 +294,7 @@ export default function App() {
   };
 
   const updateTileSize = (newSize: number) => {
-    if (newSize < 1) return;
+    if (newSize < 0.01) return;
     setTileSize(newSize);
     if (image) {
       const cols = Math.floor(image.width / newSize);

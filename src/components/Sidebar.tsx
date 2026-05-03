@@ -63,11 +63,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="text-xs font-mono text-[#E4E3E0]/60">Tile Size (px)</span>
             <input 
               type="number" 
-              min="1"
+              min="0.01"
               max="128"
+              step="0.01"
               value={tileSize}
-              onChange={(e) => setTileSize(parseInt(e.target.value) || 1)}
-              className="bg-[#141414] border border-[#E4E3E0]/10 px-2 py-1 text-xs font-mono focus:outline-none focus:border-[#E4E3E0]/30 w-16 text-white text-right"
+              onChange={(e) => setTileSize(parseFloat(e.target.value) || 1)}
+              className="bg-[#141414] border border-[#E4E3E0]/10 px-2 py-1 text-xs font-mono focus:outline-none focus:border-[#E4E3E0]/30 w-20 text-white text-right"
             />
           </div>
           <div className="text-[10px] text-[#E4E3E0]/30 font-mono italic leading-tight">
