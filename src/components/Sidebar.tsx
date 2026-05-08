@@ -1,14 +1,16 @@
 import React from "react";
 import { 
   Plus, X, Tag, Trash2, Wand2, FileSearch, 
-  Grid as GridIcon, ZoomIn, ZoomOut, RotateCcw 
+  Grid as GridIcon, ZoomIn, ZoomOut, RotateCcw,
+  GripVertical
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, Reorder } from "motion/react";
 import { Mode, LabelInput } from "../types";
 import { ICON_MAP } from "../constants";
 
 interface SidebarProps {
   modes: Mode[];
+  setModes: (modes: Mode[]) => void;
   currentMode: number;
   setMode: (id: number) => void;
   isAddingLabel: boolean;
@@ -17,6 +19,7 @@ interface SidebarProps {
   setNewLabel: (val: LabelInput) => void;
   onAddLabel: () => void;
   onRemoveLabel: (id: number) => void;
+  onResetGrid: () => void;
   isImageLoaded: boolean;
   onAutoDetect: () => void;
   onImportJson: () => void;
@@ -33,6 +36,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   modes,
+  setModes,
   currentMode,
   setMode,
   isAddingLabel,
@@ -41,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setNewLabel,
   onAddLabel,
   onRemoveLabel,
+  onResetGrid,
   isImageLoaded,
   onAutoDetect,
   onImportJson,
@@ -57,15 +62,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className="w-64 border-r border-[#E4E3E0]/10 bg-[#1A1A1A] p-6 flex flex-col gap-8 overflow-y-auto">
       <section>
-        <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#E4E3E0]/40 mb-4 italic">Grid Configuration</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#E4E3E0]/40 italic">Grid Configuration</h2>
+        </div>
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono text-[#E4E3E0]/60">Tile Size (px)</span>
             <input 
               type="number" 
-              min="0.01"
+              min="0"
               max="128"
-              step="0.01"
+              step="0.5"
               value={tileSize}
               onChange={(e) => setTileSize(parseFloat(e.target.value) || 1)}
               className="bg-[#141414] border border-[#E4E3E0]/10 px-2 py-1 text-xs font-mono focus:outline-none focus:border-[#E4E3E0]/30 w-20 text-white text-right"
@@ -137,28 +144,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </AnimatePresence>
 
-        <div className="flex flex-col gap-2">
+        <Reorder.Group axis="y" values={modes} onReorder={setModes} className="flex flex-col gap-2">
           {modes.map((m) => {
             const Icon = ICON_MAP[m.iconName as keyof typeof ICON_MAP] || Tag;
             const isActive = currentMode === m.id;
             const isCustom = m.id > 2;
 
             return (
-              <div key={m.id} className="relative group">
-                <button
-                  onClick={() => setMode(m.id)}
-                  className={`w-full flex items-center justify-between px-4 py-3 text-xs font-mono border transition-all ${
-                    isActive 
-                      ? "bg-[#E4E3E0] text-[#141414] border-[#E4E3E0]" 
-                      : "text-[#E4E3E0]/60 border-[#E4E3E0]/10 hover:border-[#E4E3E0]/30 hover:text-[#E4E3E0]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${!isActive && m.textColor ? m.textColor : ""}`} />
-                    <span>{m.name}</span>
+              <Reorder.Item 
+                key={m.id} 
+                value={m}
+                className="relative group list-none"
+              >
+                <div className="flex items-center gap-1">
+                  <div className="cursor-grab active:cursor-grabbing text-[#E4E3E0]/20 hover:text-[#E4E3E0]/40 transition-colors">
+                    <GripVertical className="w-3 h-3" />
                   </div>
-                  {m.id !== -1 && <span className="opacity-40 text-[10px]">{m.id}</span>}
-                </button>
+                  <button
+                    onClick={() => setMode(m.id)}
+                    className={`flex-1 flex items-center justify-between px-4 py-3 text-xs font-mono border transition-all ${
+                      isActive 
+                        ? "bg-[#E4E3E0] text-[#141414] border-[#E4E3E0]" 
+                        : "text-[#E4E3E0]/60 border-[#E4E3E0]/10 hover:border-[#E4E3E0]/30 hover:text-[#E4E3E0]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className={`w-4 h-4 ${!isActive && m.textColor ? m.textColor : ""}`} />
+                      <span>{m.name}</span>
+                    </div>
+                    {m.id !== -1 && <span className="opacity-40 text-[10px]">{m.id}</span>}
+                  </button>
+                </div>
                 {isCustom && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); onRemoveLabel(m.id); }}
@@ -167,10 +183,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <Trash2 className="w-3 h-3" />
                   </button>
                 )}
-              </div>
+              </Reorder.Item>
             );
           })}
-        </div>
+        </Reorder.Group>
       </section>
 
       <section>
@@ -192,6 +208,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <FileSearch className="w-4 h-4 text-amber-400" />
             <span>Import JSON Grid</span>
+          </button>
+
+          <button
+            onClick={onResetGrid}
+            disabled={!isImageLoaded}
+            className="flex items-center gap-3 px-4 py-3 text-xs font-mono border border-[#E4E3E0]/10 hover:border-red-400/30 hover:bg-red-400/5 transition-all text-red-400/80 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <RotateCcw className="w-4 h-4 text-red-400" />
+            <span>Reset Grid Data</span>
           </button>
         </div>
       </section>

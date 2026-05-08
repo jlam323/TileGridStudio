@@ -293,6 +293,13 @@ export default function App() {
     notify(`Grid configuration exported as ${filename}`);
   };
 
+  const resetGrid = () => {
+    if (grid.length === 0) return;
+    const newGrid = grid.map(row => row.map(() => 0));
+    setGrid(newGrid);
+    notify("Grid reset to default");
+  };
+
   const updateTileSize = (newSize: number) => {
     if (newSize < 0.01) return;
     setTileSize(newSize);
@@ -321,6 +328,7 @@ export default function App() {
       <main className="flex flex-1 overflow-hidden">
         <Sidebar 
           modes={modes}
+          setModes={setModes}
           currentMode={mode}
           setMode={setMode}
           isAddingLabel={isAddingLabel}
@@ -329,6 +337,7 @@ export default function App() {
           setNewLabel={setNewLabel}
           onAddLabel={handleAddLabel}
           onRemoveLabel={removeLabel}
+          onResetGrid={resetGrid}
           isImageLoaded={!!image}
           onAutoDetect={autoDetect}
           onImportJson={() => jsonInputRef.current?.click()}
