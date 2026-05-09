@@ -35,6 +35,7 @@ export default function App() {
   const [lastMousePos, setLastMousePos] = useState<Offset>({ x: 0, y: 0 });
   const [showGrid, setShowGrid] = useState(true);
   const [notification, setNotification] = useState<string | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<{ x: number, y: number } | null>(null);
 
   const [isAddingLabel, setIsAddingLabel] = useState(false);
   const [newLabel, setNewLabel] = useState<LabelInput>({ name: '', id: '', color: '#ffffff' });
@@ -139,6 +140,21 @@ export default function App() {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (!canvasRef.current || grid.length === 0) {
+      setHoveredCell(null);
+      return;
+    }
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = Math.floor(((e.clientX - rect.left) / zoom) / tileSize);
+    const y = Math.floor(((e.clientY - rect.top) / zoom) / tileSize);
+
+    if (y >= 0 && y < grid.length && x >= 0 && x < grid[0].length) {
+      setHoveredCell({ x, y });
+    } else {
+      setHoveredCell(null);
+    }
+
     if (!isInteracting) return;
 
     if (mode === -1) {
@@ -197,6 +213,20 @@ export default function App() {
     setModes(modes.filter(m => m.id !== id));
     if (mode === id) setMode(0);
     notify("Label removed");
+  };
+
+  const updateMode = (id: number, updates: Partial<Mode>) => {
+    setModes(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+    
+    // If ID changed, update grid data to match new ID
+    if (updates.id !== undefined && updates.id !== id) {
+      setGrid(prev => prev.map(row => row.map(cell => cell === id ? (updates.id as number) : cell)));
+      if (mode === id) {
+        setMode(updates.id as number);
+      }
+    }
+    
+    notify("Mode updated");
   };
 
   const autoDetect = () => {
@@ -337,6 +367,7 @@ export default function App() {
           setNewLabel={setNewLabel}
           onAddLabel={handleAddLabel}
           onRemoveLabel={removeLabel}
+          onUpdateMode={updateMode}
           onResetGrid={resetGrid}
           isImageLoaded={!!image}
           onAutoDetect={autoDetect}
@@ -364,6 +395,8 @@ export default function App() {
           onMouseUp={handleMouseUp}
           onUpload={handleUpload}
           tileSize={tileSize}
+          hoveredCell={hoveredCell}
+          setHoveredCell={setHoveredCell}
         />
 
         <input

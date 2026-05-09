@@ -1,6 +1,6 @@
 import React from "react";
 import { 
-  Plus, X, Tag, Trash2, Wand2, FileSearch, 
+  Plus, X, Tag, Trash2, Pencil, Wand2, FileSearch, 
   Grid as GridIcon, ZoomIn, ZoomOut, RotateCcw,
   GripVertical
 } from "lucide-react";
@@ -19,6 +19,7 @@ interface SidebarProps {
   setNewLabel: (val: LabelInput) => void;
   onAddLabel: () => void;
   onRemoveLabel: (id: number) => void;
+  onUpdateMode: (id: number, updates: Partial<Mode>) => void;
   onResetGrid: () => void;
   isImageLoaded: boolean;
   onAutoDetect: () => void;
@@ -45,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setNewLabel,
   onAddLabel,
   onRemoveLabel,
+  onUpdateMode,
   onResetGrid,
   isImageLoaded,
   onAutoDetect,
@@ -59,6 +61,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   tileSize,
   setTileSize
 }) => {
+  const [editingId, setEditingId] = React.useState<number | null>(null);
+  const [editValues, setEditValues] = React.useState<{ name: string, color: string, id: number }>({ name: '', color: '', id: 0 });
+
+  const startEditing = (m: Mode) => {
+    setEditingId(m.id);
+    setEditValues({ name: m.name, color: m.color, id: m.id });
+  };
+
+  const saveEdit = () => {
+    if (editingId !== null) {
+      onUpdateMode(editingId, { 
+        name: editValues.name, 
+        color: editValues.color, 
+        id: editValues.id 
+      });
+      setEditingId(null);
+    }
+  };
+
   return (
     <aside className="w-64 border-r border-[#E4E3E0]/10 bg-[#1A1A1A] p-6 flex flex-col gap-8 overflow-y-auto">
       <section>
@@ -149,6 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const Icon = ICON_MAP[m.iconName as keyof typeof ICON_MAP] || Tag;
             const isActive = currentMode === m.id;
             const isCustom = m.id > 2;
+            const isEditing = editingId === m.id;
 
             return (
               <Reorder.Item 
@@ -160,28 +182,81 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="cursor-grab active:cursor-grabbing text-[#E4E3E0]/20 hover:text-[#E4E3E0]/40 transition-colors">
                     <GripVertical className="w-3 h-3" />
                   </div>
-                  <button
-                    onClick={() => setMode(m.id)}
-                    className={`flex-1 flex items-center justify-between px-4 py-3 text-xs font-mono border transition-all ${
-                      isActive 
-                        ? "bg-[#E4E3E0] text-[#141414] border-[#E4E3E0]" 
-                        : "text-[#E4E3E0]/60 border-[#E4E3E0]/10 hover:border-[#E4E3E0]/30 hover:text-[#E4E3E0]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${!isActive && m.textColor ? m.textColor : ""}`} />
-                      <span>{m.name}</span>
+                  {isEditing ? (
+                    <div className="flex-1 flex flex-col gap-2 p-3 border border-[#E4E3E0]/30 bg-[#141414] mb-1">
+                      <input 
+                        type="text"
+                        value={editValues.name}
+                        onChange={(e) => setEditValues(prev => ({ ...prev, name: e.target.value }))}
+                        className="bg-transparent border-b border-[#E4E3E0]/20 text-xs font-mono text-white focus:outline-none focus:border-[#E4E3E0]/50"
+                        autoFocus
+                        placeholder="Mode Name"
+                        onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                      />
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 flex-1">
+                          <span className="text-[10px] font-mono text-[#E4E3E0]/40 uppercase">ID</span>
+                          <input 
+                            type="number"
+                            value={editValues.id}
+                            onChange={(e) => setEditValues(prev => ({ ...prev, id: parseInt(e.target.value) || 0 }))}
+                            className="bg-transparent border-b border-[#E4E3E0]/20 text-xs font-mono text-white focus:outline-none focus:border-[#E4E3E0]/50 w-full"
+                            onKeyDown={(e) => e.key === 'Enter' && saveEdit()}
+                          />
+                        </div>
+                        <input 
+                          type="color"
+                          value={editValues.color}
+                          onChange={(e) => setEditValues(prev => ({ ...prev, color: e.target.value }))}
+                          className="w-6 h-6 rounded overflow-hidden border-0 p-0 cursor-pointer bg-transparent"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2 mt-1">
+                        <button onClick={() => setEditingId(null)} className="text-[10px] uppercase font-mono text-[#E4E3E0]/40 hover:text-[#E4E3E0]">Cancel</button>
+                        <button onClick={saveEdit} className="text-[10px] uppercase font-mono text-white hover:underline">Save</button>
+                      </div>
                     </div>
-                    {m.id !== -1 && <span className="opacity-40 text-[10px]">{m.id}</span>}
-                  </button>
+                  ) : (
+                    <button
+                      onClick={() => setMode(m.id)}
+                      onDoubleClick={() => startEditing(m)}
+                      className={`flex-1 flex items-center justify-between px-4 py-3 text-xs font-mono border transition-all ${
+                        isActive 
+                          ? "bg-[#E4E3E0] text-[#141414] border-[#E4E3E0]" 
+                          : "text-[#E4E3E0]/60 border-[#E4E3E0]/10 hover:border-[#E4E3E0]/30 hover:text-[#E4E3E0]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 ${!isActive && m.textColor ? m.textColor : ""}`} 
+                          style={!isActive && !m.textColor ? { color: m.color } : {}}
+                        />
+                        <span>{m.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {m.id !== -1 && <span className="opacity-40 text-[10px]">{m.id}</span>}
+                      </div>
+                    </button>
+                  )}
                 </div>
-                {isCustom && (
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); onRemoveLabel(m.id); }}
-                    className="absolute -right-2 top-1/2 -translate-y-1/2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 scale-75"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                {!isEditing && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); startEditing(m); }}
+                      className="p-1 text-[#E4E3E0]/60 hover:text-white transition-colors"
+                      title="Edit label"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                    {isCustom && (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); onRemoveLabel(m.id); }}
+                        className="p-1 text-[#E4E3E0]/60 hover:text-red-400 transition-colors"
+                        title="Remove label"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
                 )}
               </Reorder.Item>
             );
