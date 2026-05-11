@@ -33,6 +33,7 @@ interface SidebarProps {
   gridSize: { cols: number; rows: number } | null;
   tileSize: number;
   setTileSize: (val: number) => void;
+  hoveredCell: { x: number, y: number } | null;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -59,7 +60,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onResetZoom,
   gridSize,
   tileSize,
-  setTileSize
+  setTileSize,
+  hoveredCell
 }) => {
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [editValues, setEditValues] = React.useState<{ name: string, color: string, id: number }>({ name: '', color: '', id: 0 });
@@ -347,6 +349,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span>Tile Size</span>
               <span className="text-blue-400">{tileSize}px</span>
             </div>
+            {hoveredCell && (
+              <div className="flex items-center justify-between text-[11px] font-mono mt-3 pt-3 border-t border-[#E4E3E0]/5">
+                <span className="text-[#E4E3E0]/40 uppercase text-[9px]">Hovered Cell</span>
+                <span className="text-white">[{hoveredCell.x}, {hoveredCell.y}]</span>
+              </div>
+            )}
          </div>
       </section>
     </aside>

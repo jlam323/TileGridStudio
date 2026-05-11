@@ -293,6 +293,7 @@ export default function App() {
         const parsed = JSON.parse(event.target?.result as string);
         if (Array.isArray(parsed) && Array.isArray(parsed[0])) {
           setGrid(parsed);
+          setExportFilename(file.name);
           notify("Grid configuration loaded");
         } else {
           throw new Error("Invalid format");
@@ -381,6 +382,7 @@ export default function App() {
           gridSize={grid.length > 0 ? { cols: grid[0].length, rows: grid.length } : null}
           tileSize={tileSize}
           setTileSize={updateTileSize}
+          hoveredCell={hoveredCell}
         />
 
         <Workspace 

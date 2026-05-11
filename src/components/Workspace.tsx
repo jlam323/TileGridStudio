@@ -97,21 +97,6 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         </div>
       )}
 
-      {hoveredCell && (
-        <div className="absolute bottom-6 left-6 bg-[#1A1A1A]/90 backdrop-blur-md border border-white/10 px-4 py-2 pointer-events-none z-50 flex flex-col gap-0.5">
-          <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#E4E3E0]/30 italic">Cell Coordinate</span>
-          <div className="flex gap-4">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-[10px] font-mono text-[#E4E3E0]/40 uppercase">X</span>
-              <span className="text-xs font-mono text-white leading-none">{hoveredCell.x}</span>
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-[10px] font-mono text-[#E4E3E0]/40 uppercase">Y</span>
-              <span className="text-xs font-mono text-white leading-none">{hoveredCell.y}</span>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
